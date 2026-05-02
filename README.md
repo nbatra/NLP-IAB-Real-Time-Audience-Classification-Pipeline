@@ -1,8 +1,16 @@
 # NLP IAB Real-Time Audience Classification Pipeline
 
-An end-to-end production ML system that classifies website domains into **IAB Content Taxonomy** categories using NLP and generates high-value audience segments from real-time programmatic advertising bidstream data.
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.8-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![XGBoost](https://img.shields.io/badge/XGBoost-3.2-blue)](https://xgboost.readthedocs.io)
+[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](https://jupyter.org)
+[![License](https://img.shields.io/badge/License-Educational-green)](LICENSE)
 
-> **Production lineage:** The core architecture and scoring methodology in this project were designed and deployed at a real AdTech company by the author and an amazing engineering team. The model was deployed to calculate user interests in real time on bidstreams running at **8 million QPS**, enabled the company to detect intent and win bids earlier than competitors, and drove a fundamental shift in the KV-store data storage approach — from materialized segment memberships to compact probability vectors, reducing storage footprint by 3-8x. This repository is a clean-room reimplementation with synthetic data for educational and portfolio purposes — the pipeline design, two-tier lookup strategy, decay math, and segment economics are all drawn from that production system.
+**Keywords:** `NLP` `IAB Content Taxonomy` `AdTech` `Programmatic Advertising` `Real-Time Bidding (RTB)` `Audience Segmentation` `Multi-Label Text Classification` `TF-IDF` `Bidstream Processing` `Demand-Side Platform (DSP)` `Supply-Side Platform (SSP)` `OpenRTB` `User Interest Modeling` `Behavioral Targeting` `Contextual Advertising` `Machine Learning Pipeline` `XGBoost` `Logistic Regression` `Scikit-Learn` `Domain Classification` `CPM Optimization`
+
+An end-to-end **production ML system** for **programmatic advertising** that classifies website domains into **IAB Content Taxonomy v2.2** categories (~700 categories) using **NLP text classification** and generates high-value **audience segments** from **real-time bidstream** data. Built with **TF-IDF**, **multi-label classification** (Logistic Regression, XGBoost, Random Forest, SGD), **exponential time-decay scoring**, and a **two-tier real-time inference** architecture designed for AdTech-scale traffic.
+
+> **Production lineage:** The core architecture and scoring methodology in this project were designed and deployed at a real **AdTech company** by the author and an amazing engineering team. The model was deployed to calculate user interests in real time on bidstreams running at **8 million QPS**, enabled the company to detect intent and win bids earlier than competitors, and drove a fundamental shift in the **KV-store** data storage approach — from materialized segment memberships to compact probability vectors, reducing storage footprint by 3-8x. This repository is a clean-room reimplementation with synthetic data for educational and portfolio purposes — the pipeline design, two-tier lookup strategy, decay math, and segment economics are all drawn from that production system.
 
 ---
 
@@ -18,15 +26,16 @@ An end-to-end production ML system that classifies website domains into **IAB Co
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Production Considerations](#production-considerations)
+- [Keywords & Topics](#keywords--topics)
 - [Author](#author)
 
 ---
 
 ## Problem Statement
 
-Every time someone loads a webpage, a real-time auction (RTB) decides which ad to show — in under 100ms. Advertisers pay premiums to reach users whose browsing behavior signals genuine interest. The challenge: **how do you classify 200K+ domains into ~700 IAB categories, track 500M+ users in real time, and assign audience segments — all within a 10ms latency budget per bid request?**
+In **programmatic advertising**, every time someone loads a webpage, a **real-time bidding (RTB)** auction decides which ad to show — in under 100ms. **Demand-Side Platforms (DSPs)** and advertisers pay premiums to reach users whose browsing behavior signals genuine interest. The challenge: **how do you classify 200K+ domains into ~700 IAB categories, track 500M+ users in real time, and assign audience segments — all within a 10ms latency budget per bid request?**
 
-This system solves that by decomposing the problem into four interconnected components:
+This system solves that by decomposing the problem into four interconnected components of an **AdTech ML pipeline**:
 
 | Component | What It Does | Timescale |
 |---|---|---|
@@ -272,12 +281,33 @@ Everything else — the TF-IDF pipeline, model training, calibration, two-tier s
 
 ---
 
+## Keywords & Topics
+
+This project covers the intersection of **Natural Language Processing (NLP)** and **AdTech / Programmatic Advertising**. Below are the domains and technologies for discoverability:
+
+**Advertising Technology (AdTech):**
+Programmatic Advertising, Real-Time Bidding (RTB), OpenRTB Protocol, Demand-Side Platform (DSP), Supply-Side Platform (SSP), Ad Exchange, Bid Request, Bid Response, CPM Optimization, Impression-Level Data, Bidstream Processing, Ad Targeting, Behavioral Targeting, Contextual Targeting, Audience Targeting, Interest-Based Advertising, First-Party Data, Third-Party Data, Cookie Deprecation, Identity Resolution, UID2, RampID, IDFA, GAID
+
+**IAB Standards:**
+IAB Content Taxonomy v2.2, IAB Audience Taxonomy, IAB Tech Lab, Content Classification, Domain Categorization, Brand Safety, Ad Verification, Inventory Quality
+
+**Machine Learning & NLP:**
+Multi-Label Text Classification, TF-IDF Vectorization, Logistic Regression, XGBoost, Random Forest, SGD Classifier, OneVsRest Classification, Calibrated Classifier, Platt Scaling, Probability Calibration, Cross-Validation, F1 Score, AUC-ROC, Precision-Recall, Confusion Matrix, Feature Importance, Model Interpretability, Scikit-Learn, Text Mining, Document Classification, Web Content Classification
+
+**Real-Time Systems & Data Engineering:**
+Stream Processing, Kafka, Redis, Aerospike, Key-Value Store, In-Memory Computing, Low-Latency Inference, Sub-Millisecond Lookup, Exponential Time Decay, Score Accumulation, User Profiling, User Interest Graph, Probability Vector Storage, Segment Generation, Data Pipeline, ETL, Batch Processing, Apache Parquet, Apache Arrow
+
+**Scale & Architecture:**
+8 Million QPS, High-Throughput ML, Production ML Pipeline, ML System Design, MLOps, Two-Tier Architecture, Lookup Table Pattern, Cache-Aside Pattern, Blue-Green Deployment, Capacity Planning, Diurnal Traffic Patterns, Power-Law Distribution
+
+---
+
 ## Author
 
-**Nipun Batra**
+Built by **Nipun Batra**
 
-- Email: batranipun@gmail.com
-- LinkedIn: [linkedin.com/in/nipunbatra](https://www.linkedin.com/in/nipunbatra/)
+[![GitHub](https://img.shields.io/badge/GitHub-nbatra-181717?logo=github)](https://github.com/nbatra)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-nipunbatra-0A66C2?logo=linkedin)](https://www.linkedin.com/in/nipunbatra/)
 
 Built from real-world production experience designing and deploying IAB audience classification systems in programmatic advertising. The core pipeline — domain classification via TF-IDF, two-tier bid-time scoring, exponential decay with category-specific half-lives, and probability vector storage — was implemented at scale with a talented AdTech engineering team processing billions of daily bid requests.
 
