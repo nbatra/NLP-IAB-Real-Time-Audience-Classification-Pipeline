@@ -109,14 +109,11 @@ This system solves that by decomposing the problem into four interconnected comp
 
 ## Pipeline Overview
 
-### `IAB_bidstream_user_classification.ipynb` — Full Pipeline (Master Notebook)
+### `IAB_bidstream_user_classification.ipynb`
 
-The complete end-to-end pipeline in a single notebook — from data generation through domain classification, bidstream simulation, scoring, decay, segment generation, and evaluation. Contains all 50 cells covering every step. Use this for a unified walkthrough of the entire system.
+The complete end-to-end pipeline in a single notebook (50 cells) covering every step:
 
-### `part_1_classification.ipynb` — Domain Classification
-
-Builds the NLP classification engine that maps website domains to IAB categories:
-
+**Part 1 — Domain Classification**
 1. **Synthetic corpus generation** — 500 domains across 23 IAB Tier-1 categories with realistic, category-specific vocabulary pools (production: replace with web crawler output)
 2. **TF-IDF vectorization** — 20,000 features, unigrams + bigrams, sublinear TF scaling, with a worked example showing exact term-weight calculations
 3. **Model comparison** — 4 classifiers evaluated via stratified 5-fold cross-validation:
@@ -125,20 +122,16 @@ Builds the NLP classification engine that maps website domains to IAB categories
    - Random Forest
    - **XGBoost**
 4. **Full-data model training** — Best performer trained on full data, calibrated for probability output
-5. **Domain lookup table** — Pre-computed `{domain → {IAB_category: probability}}` mapping, the core artifact consumed by the real-time pipeline
-6. **Artifact serialization** — Exports `domain_df.parquet`, `pipeline_artifacts.pkl`, and `classification_model.pkl` for cross-notebook dependency
+5. **Domain lookup table** — Pre-computed `{domain → {IAB_category: probability}}` mapping
 
-### `part_2_evaluation.ipynb` — Scoring, Segments & Evaluation
-
-Simulates the real-time pipeline and evaluates segment quality:
-
-1. **Bidstream simulation** — 10,000 events across 500 users with power-law activity distributions, diurnal traffic patterns, and user-domain affinity modeling
-2. **Two-tier real-time scoring** — Tier 1 (lookup table, <1ms) with Tier 2 fallback (live TF-IDF inference via `RealTimeClassifier` with in-memory caching for unknown domains)
-3. **Exponential time-decay** — Category-specific half-lives reflecting real-world intent persistence
-4. **Audience segment generation** — Top-K thresholded assignment to named segments with size and confidence analysis
-5. **User journey trace** — End-to-end walkthrough of a single user's path from raw bid events through scoring, decay, and final segment assignment
-6. **Quality metrics** — Segment coverage, user distribution, score density analysis, and threshold sensitivity curves
-7. **Model interpretability** — TF-IDF feature importance showing which terms drive each IAB category prediction
+**Part 2 — Scoring, Segments & Evaluation**
+6. **Bidstream simulation** — 100,000 events across 5,000 users with power-law activity distributions, diurnal traffic patterns, and ~5% unknown domains
+7. **Two-tier real-time scoring** — Tier 1 (lookup table, <1ms) with Tier 2 fallback (live TF-IDF inference via `RealTimeClassifier` with in-memory caching for unknown domains)
+8. **Exponential time-decay** — Category-specific half-lives reflecting real-world intent persistence
+9. **Audience segment generation** — Top-K thresholded assignment to named segments with size and confidence analysis
+10. **User journey trace** — End-to-end walkthrough of a single user's path from raw bid events through scoring, decay, and final segment assignment
+11. **Quality metrics** — Segment coverage, user distribution, score density analysis, and threshold sensitivity curves
+12. **Model interpretability** — TF-IDF feature importance showing which terms drive each IAB category prediction
 
 ---
 
@@ -186,9 +179,7 @@ The pipeline generates 9 diagnostic plots covering every stage of the system:
 NLP IAB Real-Time Audience Classification Pipeline/
 │
 ├── notebooks/
-│   ├── IAB_bidstream_user_classification.ipynb  # Full end-to-end pipeline (master notebook, 50 cells)
-│   ├── part_1_classification.ipynb              # Part 1: data → TF-IDF → model → lookup table
-│   └── part_2_evaluation.ipynb                  # Part 2: bidstream → scoring → decay → segments → eval
+│   └── IAB_bidstream_user_classification.ipynb  # Full end-to-end pipeline (50 cells)
 │
 ├── artifacts/                                  # Serialized outputs from Notebook 1 → consumed by Notebook 2
 │   ├── domain_df.parquet                       # Domain corpus with text and labels
@@ -239,16 +230,11 @@ uv venv .venv
 source .venv/bin/activate
 uv pip install numpy pandas scikit-learn scipy matplotlib seaborn xgboost pyarrow jupyter ipykernel
 
-# Option A: Run the full pipeline in one notebook
+# Run the notebook
 jupyter notebook notebooks/IAB_bidstream_user_classification.ipynb
-
-# Option B: Run the split notebooks in order
-jupyter notebook notebooks/part_1_classification.ipynb
-# Then:
-jupyter notebook notebooks/part_2_evaluation.ipynb
 ```
 
-**If using the split notebooks:** Part 2 depends on artifacts generated by Part 1. Run them sequentially.
+Run all cells top to bottom. The notebook is self-contained — no external dependencies beyond the installed packages.
 
 ### From Foundation to Production
 
