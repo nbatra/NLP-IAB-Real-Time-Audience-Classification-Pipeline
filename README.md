@@ -8,7 +8,7 @@
 
 **Keywords:** `NLP` `IAB Content Taxonomy` `AdTech` `Programmatic Advertising` `Real-Time Bidding (RTB)` `Audience Segmentation` `Multi-Label Text Classification` `TF-IDF` `Bidstream Processing` `Demand-Side Platform (DSP)` `Supply-Side Platform (SSP)` `OpenRTB` `User Interest Modeling` `Behavioral Targeting` `Contextual Advertising` `Machine Learning Pipeline` `XGBoost` `Logistic Regression` `Scikit-Learn` `Domain Classification` `CPM Optimization`
 
-An end-to-end **production ML system** for **programmatic advertising** that classifies website domains into **IAB Content Taxonomy v2.2** categories (~700 categories) using **NLP text classification** and generates high-value **audience segments** from **real-time bidstream** data. Built with **TF-IDF**, **multi-label classification** (Logistic Regression, XGBoost, Random Forest, SGD), **exponential time-decay scoring**, and a **two-tier real-time inference** architecture designed for AdTech-scale traffic.
+A **foundation-level ML pipeline** for **programmatic advertising** that classifies website domains into **IAB Content Taxonomy v2.2** categories (~700 categories) using **NLP text classification** and generates high-value **audience segments** from **real-time bidstream** data. Built with **TF-IDF**, **multi-label classification** (Logistic Regression, XGBoost, Random Forest, SGD), **exponential time-decay scoring**, and a **two-tier real-time inference** architecture designed for AdTech-scale traffic. This notebook serves as a **foundation that can be extended into a production system** — the architecture, algorithms, and scoring logic are production-proven, while the synthetic data and local execution environment would be replaced with real data sources and distributed infrastructure for deployment.
 
 > **Production lineage:** The core architecture and scoring methodology in this project were designed and deployed at a real **AdTech company** by the author and an amazing engineering team. The model was deployed to calculate user interests in real time on bidstreams running at **8 million QPS**, enabled the company to detect intent and win bids earlier than competitors, and drove a fundamental shift in the **KV-store** data storage approach — from materialized segment memberships to compact probability vectors, reducing storage footprint by 3-8x. This repository is a clean-room reimplementation with synthetic data for educational and portfolio purposes — the pipeline design, two-tier lookup strategy, decay math, and segment economics are all drawn from that production system.
 
@@ -25,7 +25,7 @@ An end-to-end **production ML system** for **programmatic advertising** that cla
 - [Technical Stack](#technical-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
-- [Production Considerations](#production-considerations)
+- [Real-World Scale Context](#real-world-scale-context)
 - [Keywords & Topics](#keywords--topics)
 - [Author](#author)
 
@@ -120,7 +120,7 @@ Builds the NLP classification engine that maps website domains to IAB categories
    - SGD Classifier (linear SVM with hinge loss)
    - Random Forest
    - **XGBoost**
-4. **Production model training** — Best performer trained on full data, calibrated for probability output
+4. **Full-data model training** — Best performer trained on full data, calibrated for probability output
 5. **Domain lookup table** — Pre-computed `{domain → {IAB_category: probability}}` mapping, the core artifact consumed by the real-time pipeline
 6. **Artifact serialization** — Exports `domain_df.parquet`, `pipeline_artifacts.pkl`, and `classification_model.pkl` for cross-notebook dependency
 
@@ -140,15 +140,15 @@ Simulates the real-time pipeline and evaluates segment quality:
 
 ## Key Results & Visualizations
 
-The pipeline generates 9 production-quality diagnostic plots:
+The pipeline generates 9 diagnostic plots covering every stage of the system:
 
 | Plot | What It Shows |
 |---|---|
 | ![Domain Corpus Overview](plots/01_domain_corpus_overview.png) | Category distribution across the domain corpus — monitors for class imbalance that degrades classifier performance |
 | ![TF-IDF Worked Example](plots/02_tfidf_worked_example.png) | Exact term weights for a single domain — the debugging view when a domain is misclassified |
-| ![Model Comparison](plots/03_model_comparison.png) | 4-model head-to-head on F1, AUC, training time, and inference latency — the production model selection gate |
+| ![Model Comparison](plots/03_model_comparison.png) | 4-model head-to-head on F1, AUC, training time, and inference latency — the model selection gate |
 | ![Confusion Matrix](plots/04_confusion_matrix.png) | Per-category precision/recall heatmap — identifies which IAB categories the classifier confuses |
-| ![Bidstream Patterns](plots/05_bidstream_patterns.png) | Simulated traffic with diurnal and power-law patterns — what production monitoring dashboards look like |
+| ![Bidstream Patterns](plots/05_bidstream_patterns.png) | Simulated traffic with diurnal and power-law patterns — mirrors real-world monitoring dashboards |
 | ![Decay Curves](plots/06_decay_curves.png) | How category-specific half-lives shape score retention — the key business insight for segment freshness |
 | ![Audience Segments](plots/07_audience_segments.png) | Segment size distribution and score density — are segments large enough for programmatic scale? |
 | ![Threshold Analysis](plots/08_threshold_analysis.png) | Precision vs. coverage trade-off at different confidence thresholds — the tuning knob for segment quality |
@@ -161,14 +161,14 @@ The pipeline generates 9 production-quality diagnostic plots:
 | Layer | Technology | Why |
 |---|---|---|
 | **Text Vectorization** | TF-IDF (scikit-learn) | 50x cheaper than BERT with only 2-3% accuracy gap; no GPU required; interpretable feature weights |
-| **Classification** | Calibrated Logistic Regression (OneVsRest) | Well-calibrated probability distributions across 700 categories; fast inference; production standard in AdTech |
+| **Classification** | Calibrated Logistic Regression (OneVsRest) | Well-calibrated probability distributions across 700 categories; fast inference; industry standard in AdTech |
 | **Model Comparison** | XGBoost, Random Forest, SGD | Evaluated for completeness; LR wins on calibration quality and inference speed at this scale |
 | **Bidstream Scoring** | Two-tier: dict lookup + live inference | O(1) for known domains (<1ms); graceful fallback for long-tail domains (~10ms with caching) |
 | **Score Decay** | Exponential decay (e^−λt) | Smooth, continuous; category-specific half-lives; computed lazily at read-time (no batch job) |
-| **Data Format** | Parquet (Apache Arrow) | Columnar, compressed, fast I/O — production standard for ML pipelines |
-| **Serialization** | Pickle (cross-notebook artifacts) | Notebook-to-notebook dependency management; production would use MLflow/W&B |
+| **Data Format** | Parquet (Apache Arrow) | Columnar, compressed, fast I/O — industry standard for ML pipelines |
+| **Serialization** | Pickle (cross-notebook artifacts) | Notebook-to-notebook dependency management; at scale, replace with MLflow/W&B |
 
-**Production equivalents** (not in demo, but referenced in design):
+**For production deployment**, replace the local equivalents with:
 - **Domain lookup store:** Redis / Aerospike (~120MB, fits in memory on every bid node)
 - **User score store:** Redis Cluster / Aerospike (~300GB compressed for 500M users)
 - **Stream processing:** Kafka (partitioned by user_id) → custom bid processor
@@ -188,7 +188,7 @@ NLP IAB Real-Time Audience Classification Pipeline/
 ├── artifacts/                                  # Serialized outputs from Notebook 1 → consumed by Notebook 2
 │   ├── domain_df.parquet                       # Domain corpus with text and labels
 │   ├── pipeline_artifacts.pkl                  # Config, lookup table, TF-IDF matrix, model metrics
-│   └── classification_model.pkl                # TF-IDF vectorizer + production classifier
+│   └── classification_model.pkl                # TF-IDF vectorizer + trained classifier
 │
 ├── plots/                                      # 9 diagnostic PNGs generated by the notebooks
 │   ├── 01_domain_corpus_overview.png
@@ -243,11 +243,11 @@ jupyter notebook notebooks/02_scoring_segments_evaluation.ipynb
 
 **Execution order matters:** Notebook 2 depends on artifacts generated by Notebook 1. Run them sequentially.
 
-### What Changes for Production
+### From Foundation to Production
 
-The notebooks are designed so that **only the data source changes** when moving to production:
+This pipeline is designed as a **foundation that can be extended into a production system**. The core algorithms and architecture remain the same — what changes is the data source and infrastructure:
 
-| Demo (this repo) | Production |
+| This Repo (Foundation) | Production Extension |
 |---|---|
 | Synthetic 500-domain corpus with generated text | Web crawler output (Scrapy) for 200K+ real domains |
 | `domain_df.parquet` loaded from disk | Crawl pipeline → S3 → training pipeline (Airflow/Dagster) |
@@ -255,13 +255,15 @@ The notebooks are designed so that **only the data source changes** when moving 
 | Simulated 10K bidstream events | Kafka stream of 50B+ daily OpenRTB bid requests |
 | Pickle artifacts | MLflow model registry with versioning and A/B deployment |
 
-Everything else — the TF-IDF pipeline, model training, calibration, two-tier scoring logic, decay math, and segment generation — runs identically.
+The core algorithms — TF-IDF pipeline, model training, calibration, two-tier scoring logic, decay math, and segment generation — carry over directly and form the foundation for the production system.
 
 ---
 
-## Production Considerations
+## Real-World Scale Context
 
-### Scale Numbers (Real-World)
+The architecture in this repo was designed for the following real-world constraints. These numbers provide context for why each design decision was made:
+
+### Scale Numbers
 
 | Dimension | Volume | Latency Budget |
 |---|---|---|
@@ -298,7 +300,7 @@ Multi-Label Text Classification, TF-IDF Vectorization, Logistic Regression, XGBo
 Stream Processing, Kafka, Redis, Aerospike, Key-Value Store, In-Memory Computing, Low-Latency Inference, Sub-Millisecond Lookup, Exponential Time Decay, Score Accumulation, User Profiling, User Interest Graph, Probability Vector Storage, Segment Generation, Data Pipeline, ETL, Batch Processing, Apache Parquet, Apache Arrow
 
 **Scale & Architecture:**
-8 Million QPS, High-Throughput ML, Production ML Pipeline, ML System Design, MLOps, Two-Tier Architecture, Lookup Table Pattern, Cache-Aside Pattern, Blue-Green Deployment, Capacity Planning, Diurnal Traffic Patterns, Power-Law Distribution
+8 Million QPS, High-Throughput ML, ML Pipeline Foundation, ML System Design, MLOps, Two-Tier Architecture, Lookup Table Pattern, Cache-Aside Pattern, Blue-Green Deployment, Capacity Planning, Diurnal Traffic Patterns, Power-Law Distribution
 
 ---
 
